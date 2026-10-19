@@ -1,0 +1,20 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+const configured=SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY!=='YOUR_SUPABASE_ANON_KEY';
+const db=configured?createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const demo=[
+{id:1,name:'Botanical Gentle Cleanser',category:'Cleansers',price:24,image_url:'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=650&q=85',badge:'BEST SELLER'},
+{id:2,name:'Radiance Glow Serum',category:'Serums',price:38,image_url:'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?w=650&q=85',badge:'NEW'},
+{id:3,name:'Daily Dew Moisturizer',category:'Moisturizers',price:32,image_url:'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=650&q=85',badge:'POPULAR'},
+{id:4,name:'Everyday SPF 50',category:'Sunscreen',price:29,image_url:'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=650&q=85',badge:'ESSENTIAL'}];
+let products=demo,category='',cart=JSON.parse(localStorage.getItem('scincare_cart')||'[]'),signUp=false;
+const $=s=>document.querySelector(s);
+function render(){let q=$('#search').value.toLowerCase();let list=products.filter(p=>(!category||p.category===category)&&p.name.toLowerCase().includes(q));$('#products').innerHTML=list.length?list.map(p=>`<article class="product"><span class="tag">${escapeHtml(p.badge||'SCIN CARE')}</span><img src="${escapeHtml(p.image_url||'')}" alt="${escapeHtml(p.name)}" loading="lazy"><div class="product-info"><p>${escapeHtml(p.category)}</p><h3>${escapeHtml(p.name)}</h3><div class="price">$${Number(p.price).toFixed(2)}</div><button data-add="${escapeHtml(String(p.id))}">ADD TO BAG +</button></div></article>`).join(''):'<p class="empty">No products found.</p>';$('#count').textContent=cart.length}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('#products').addEventListener('click',e=>{let id=e.target.dataset.add;if(!id)return;let p=products.find(x=>String(x.id)===id);if(p){cart.push({id:p.id,name:p.name,price:p.price});localStorage.setItem('scincare_cart',JSON.stringify(cart));render()}});
+$('#cartBtn').onclick=()=>alert(cart.length?cart.map(p=>p.name+' — $'+Number(p.price).toFixed(2)).join('\n')+'\n\nCheckout coming soon.':'Your bag is empty.');
+$('#search').oninput=render;document.querySelectorAll('.category').forEach(el=>el.onclick=()=>{category=category===el.dataset.cat?'':el.dataset.cat;document.querySelector('#featured').scrollIntoView({behavior:'smooth'});render()});
+let slide=0;const slides=[...document.querySelectorAll('.slide')],dots=[...document.querySelectorAll('.dot')];function show(n){slide=n;slides.forEach((s,i)=>s.classList.toggle('active',i===n));dots.forEach((d,i)=>d.classList.toggle('active',i===n))}dots.forEach((d,i)=>d.onclick=()=>show(i));setInterval(()=>show((slide+1)%slides.length),5500);
+$('#loginBtn').onclick=()=>{$('#authModal').classList.add('show')};$('#closeModal').onclick=()=>$('#authModal').classList.remove('show');$('#toggleAuth').onclick=()=>{signUp=!signUp;$('#authTitle').textContent=signUp?'Create account':'Welcome back';$('#toggleAuth').textContent=signUp?'Already have an account? Sign in':'Create an account';$('#authMessage').textContent=''};
+$('#authForm').onsubmit=async e=>{e.preventDefault();if(!db){$('#authMessage').textContent='Connect Supabase in config.js to enable login.';return}let email=$('#email').value,password=$('#password').value;let {error}=signUp?await db.auth.signUp({email,password}):await db.auth.signInWithPassword({email,password});$('#authMessage').textContent=error?error.message:signUp?'Check your email to confirm your account.':'Signed in successfully.';if(!error&&!signUp)$('#loginBtn').textContent='♡ My Account'};
+async function load(){if(db){const {data,error}=await db.from('products').select('id,name,category,price,image_url,badge').eq('active',true).order('created_at',{ascending:false});if(error){console.error(error);$('#products').innerHTML='<p class="empty">Unable to load products.</p>';return}products=data||[]}render()}load();
