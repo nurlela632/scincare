@@ -1,13 +1,19 @@
-# SCIN CARE
-Responsive skincare storefront with carousel, categories, featured products, promotion banner, cart preview, and Supabase-ready login/product catalog.
+# SCIN CARE — Affiliate Skincare Discovery
 
-## Setup
+Static GitHub Pages affiliate website. Visitors browse categories and featured products and follow **Buy Now** links to third-party retailers in a new tab. No customer login, cart, checkout or payment processing.
+
+## Publish
+GitHub Pages: Settings → Pages → Deploy from branch → main → /(root).
+
+## Connect Supabase (optional cloud catalog)
 1. Create a Supabase project.
-2. Run `supabase/schema.sql` in the SQL Editor.
-3. Enable Email authentication in Supabase Authentication settings.
-4. Replace placeholders in `config.js` with your Supabase project URL and **publishable/anon** key (never a secret/service-role key).
-5. Upload product images into the `product-images` Storage bucket. Copy public image URLs into the `image_url` column of your products.
-6. Add products through the Supabase Table Editor. Public visitors can only read active products; they cannot write them.
-7. Host the files with GitHub Pages (Settings → Pages → Deploy from branch → main / root).
+2. Run `supabase/schema.sql` in its SQL Editor.
+3. Copy the project URL and **public publishable/anon key** into `config.js`. Never commit service-role keys, database passwords, or secret keys.
+4. Upload product images to the public `product-images` Storage bucket and copy their public URLs.
+5. Add rows in Table Editor → products, including `name`, `category`, `price`, `image_url`, and `affiliate_url` (the full approved affiliate destination URL). Set `active=true`.
+6. Only public active products are readable from the browser. Admins manage product data in Supabase.
 
-Before Supabase configuration, demo products appear and sign-in displays a setup message. After configuration, the product grid loads real cloud records. Cart is a local browser preview, **not checkout/payment processing**. Currency and promotional text are demonstration content; update them before launch.
+Without Supabase configuration, demo product cards are shown with **Link Coming Soon** instead of fake affiliate destinations. Once connected, real cloud products replace demo entries.
+
+## Affiliate guidance
+Add a visible affiliate disclosure and follow each partner's program rules. Only use approved product images and genuine offers. The price and promotion sections in the template are illustrative; verify actual retailer prices and remove outdated promotions before promoting the site. External links use `target="_blank"` with `rel="noopener noreferrer sponsored nofollow"`.
